@@ -1,0 +1,241 @@
+class Customer (
+    private var customerId: String,
+    private var fullName: String,
+    private var nationalId: String,
+    private var phoneNumber: String,
+    private var address: String,
+    private var accounts: MutableList<Account>
+){
+    fun getCustomerId(): String{
+        return customerId
+    }
+    fun openAccount(account: Account){
+        accounts.add(account)
+    }
+    fun closeAccount(accountNumber: String){
+        var flag: Boolean = false
+        for (acc in accounts){
+            if (acc.getAccountNumber() == accountNumber){
+                flag = true
+                acc.closeAccount()
+                break
+            }
+        }
+        if (!flag) println("Account not found")
+    }
+    fun getTotalBalance(): Double{
+        var sum: Double = 0.0
+        for (acc in accounts){
+            sum += acc.getBalance()
+        }
+        return sum
+    }
+    fun printCustomerDetails(){
+        println("Customer Details:")
+        println("ID: $customerId")
+        println("Name: $fullName")
+        println("NationalId: $nationalId")
+        println("phoneNumber: $phoneNumber")
+        println("address: $address")
+        println("Accounts summary:")
+        println("The number of accounts: ${accounts.size}")
+        for (acc in accounts){
+            println("account number: ${acc.getAccountNumber()}")
+            println("balance ${acc.getBalance()}")
+            println("openedDate: ${acc.getOpenedDate()}")
+            if (acc.getstatus()) println("Status: Activated")
+            else println("Status: Not Activated")
+            println()
+        }
+    }
+}
+class Transaction(
+    val transactionId: String,
+    val type : String,
+    val amount: Double,
+    val date: String,
+    val sourceAccount: String,
+    val targetAccount: String?
+) {
+    fun printTransactionDetails(){
+        println("Transaction Details:")
+        println("ID: $transactionId")
+        println("Type: $type")
+        println("Amount: $amount")
+        println("Date: $date")
+        println("SourceAccount: $sourceAccount")
+        println("TargetAccount: $targetAccount")
+    }
+}
+class Bank(
+    private var bankName: String,
+    private var customers: MutableList<Customer>,
+    private var employees: MutableList<Employee>,
+) {
+    fun addCustomer(customer: Customer) {
+        customers.add(customer)
+    }
+    fun removeCustomer(customerId: String) {
+        for (customer in customers){
+            if (customer.getCustomerId() == customerId){
+                customers.remove(customer)
+            }
+        }
+    }
+    fun findCustomer(customerId: String): Customer? {
+        for (customer in customers){
+            if (customer.getCustomerId() == customerId){
+                return customer
+            }
+        }
+        println("Customer not found")
+        return null
+    }
+    fun generateBankReport(){
+        println("$bankName Report:")
+        println("Total customers: ${customers.size}")
+        println("Total employees: ${employees.size}")
+        println("Total bank holdings: ${calculateTotalBankHoldings()}")
+        println("-------------------------")
+        for (customer in customers){
+            customer.printCustomerDetails()
+            println("------------------------")
+        }
+    }
+    fun calculateTotalBankHoldings(): Double{
+        var totalHoldings = 0.0
+        for (customer in customers){
+            totalHoldings += customer.getTotalBalance()
+        }
+        return totalHoldings
+    }
+}
+class Employee(
+    private var employeeId: String,
+    private var name: String,
+    private var role: String,
+    private var salary: Double,
+) {
+    fun approveLoan(customer: Customer, amount: Double) {
+        if (role != "Manager"){
+            println("Only Manager can approve loan")
+        }
+    }
+    fun freezeAccount(accountNumber: String){
+
+    }
+    fun unfreezeAccount(accountNumber: String){}
+}
+abstract class Account(
+    protected var accountNumber: String,
+    protected var balance: Double,
+    protected var openedDate: String,
+    protected var isActive: Boolean,
+    protected var isforzen: Boolean
+){
+    fun freeze(){
+        isforzen = true
+    }
+    fun unfreeze(){
+        isforzen = false
+    }
+    fun getAccountNumber(): String{
+        return accountNumber
+    }
+    fun getBalance(): Double{
+        return balance
+    }
+    fun getOpenedDate(): String{
+        return openedDate
+    }
+    fun getstatus(): Boolean{
+        return isActive
+    }
+    fun deposit(amount: Double){
+        if (isActive && !isforzen){
+            if (amount > 0){
+                balance += amount
+                println("Balance Increase Successfully")
+                println("Your balance is $balance")
+            }
+            else{
+                println("Amount must be postitve")
+            }
+        }
+        else{
+            println("Error , Your account is inactive")
+        }
+    }
+    abstract fun withdraw(amount: Double)
+
+    fun transfer(amount: Double , targetAccount: Account){
+        if (isActive && !isforzen){
+            if (amount > balance){
+                println("Insufficient balance")
+            }
+            this.withdraw((amount))
+            targetAccount.deposit(amount)
+        }
+    }
+
+
+    abstract fun calculateMonthlyInterest(): Double
+    fun closeAccount(){
+        if (balance == 0.0){
+            isActive = false
+            println("Account is closed successfully")
+        }
+        else {
+            println("Balance must be zero to close account")
+        }
+    }
+}
+class SavingsAccount(
+    private var interestRate:Double ,
+    private var withdrawlthismonth:Int
+):Account(accountNumber = "", balance = 0.0, openedDate = "", isActive = false , isforzen = false ) {
+    override fun withdraw(amount: Double) {
+        if (withdrawlthismonth > 3) {
+            println("Withdrawl limit reached")
+        }
+        else{
+            balance -= amount
+            withdrawlthismonth++
+        }
+    }
+
+    override fun calculateMonthlyInterest(): Double {
+        return balance + interestRate
+    }
+}
+class CurrentAccount(
+    private var overdraft: Double
+) : Account(accountNumber = "", balance = 0.0, openedDate = "", isActive = false , isforzen = false ) {
+    override fun withdraw(amount: Double) {
+        if (amount > overdraft + balance){
+            println("overdraft limit exceeded")
+        }
+        else{
+            balance -= amount
+        }
+    }
+    override fun calculateMonthlyInterest(): Double {
+        return 0.0
+    }
+}
+class FixedDepositAccount(
+    private val interestRate: Double,
+) : Account(accountNumber = "", balance = 0.0, openedDate = "", isActive = false , isforzen = false ) {
+    override fun withdraw(amount: Double) {
+        println("cannot withdraw")
+    }
+    override fun calculateMonthlyInterest(): Double {
+        return balance + interestRate
+    }
+
+
+}
+import javax.xml.transform.sax.SAXTransformerFactory
+fun main(){
+
+}
